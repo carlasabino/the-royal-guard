@@ -1,198 +1,373 @@
 <!doctype html>
+
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Chapter 25 – Reader</title>
+  <title>Chapter 25 - Reader</title>
+
   <style>
-    :root { --bg:#0f1115; --fg:#f2f2f2; --muted:#98a2b3; --zoom:1; }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--fg);
-         font:15px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
-    .bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:.5rem;
-         padding:.6rem .8rem;background:#151821cc;backdrop-filter:blur(8px);
-         border-bottom:1px solid #232836}
-    .title{font-weight:700;letter-spacing:.3px;margin-right:auto}
-    .btn,.num{background:#1a1f2b;color:var(--fg);border:1px solid #2a3142;
-         border-radius:10px;padding:.45rem .7rem;font:inherit;cursor:pointer}
-    .btn:active{transform:translateY(1px)}
-    .num{width:5.2rem;text-align:center}
-    .wrap{max-width:1000px;margin:0 auto;padding:1rem .8rem 3rem}
-    .page{position:relative;margin:0 auto 1.1rem;transform:scale(var(--zoom));
-          transform-origin:top center;transition:transform .15s ease}
-    .page img{width:100%;height:auto;display:block;border-radius:8px;
-              background:#0c0f14;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    .page .tag{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.55);
-               color:#fff;font-size:12px;padding:.15rem .4rem;border-radius:6px}
-    .muted{color:var(--muted)}
-    .sep{width:1px;height:28px;background:#2a3142;margin:0 .4rem}
-    .hide{display:none!important}
-    .light{ --bg:#ffffff; --fg:#101418; --muted:#4b5563 }
+    :root {
+      --bg: #0f1115;
+      --fg: #f2f2f2;
+      --muted: #98a2b3;
+      --zoom: 1;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 15px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial;
+    }
+
+    .bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .6rem .8rem;
+      background: #151821cc;
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #232836;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      font-weight: 700;
+      letter-spacing: .3px;
+      margin-right: auto;
+    }
+
+    .btn,
+    .num {
+      background: #1a1f2b;
+      color: var(--fg);
+      border: 1px solid #2a3142;
+      border-radius: 10px;
+      padding: .45rem .7rem;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .num {
+      width: 5.2rem;
+      text-align: center;
+    }
+
+    .wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 1rem .8rem 3rem;
+    }
+
+    .page {
+      position: relative;
+      margin: 0 auto 1.1rem;
+      transform: scale(var(--zoom));
+      transform-origin: top center;
+      transition: transform .15s ease;
+    }
+
+    .page img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+      background: #0c0f14;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      pointer-events: none;
+    }
+
+    .page .tag {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      background: rgba(0,0,0,.55);
+      color: #fff;
+      font-size: 12px;
+      padding: .15rem .4rem;
+      border-radius: 6px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .sep {
+      width: 1px;
+      height: 28px;
+      background: #2a3142;
+      margin: 0 .4rem;
+    }
+
+    .light {
+      --bg: #ffffff;
+      --fg: #101418;
+      --muted: #4b5563;
+    }
+
+    html,
+    body,
+    img,
+    .page {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    .chapter-nav {
+      text-align: center;
+      margin: 3rem 0;
+    }
+
+    .chapter-nav a {
+      color: #aaa;
+      text-decoration: none;
+      margin: 0 .5rem;
+    }
+
+    .next-chapter {
+      display: inline-block;
+      padding: 0.8rem 1.5rem;
+      background-color: #1a1c22;
+      color: #f2f2f2 !important;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .next-chapter:hover {
+      background-color: #2a2d36;
+    }
+
+    .error-box {
+      padding: 2rem;
+      text-align: center;
+      color: #ffb4b4;
+      border: 1px solid #553;
+      border-radius: 8px;
+      background: #1a1111;
+    }
   </style>
+
 </head>
+
 <body>
+
   <div class="bar">
     <div class="title">Chapter 25</div>
-    <button class="btn" id="prev">← Prev</button>
-    <label class="muted">Page</label>
-    <input class="num" id="go" type="number" min="1" value="1">
-    <span class="muted">/ <span id="total">9</span></span>
-    <button class="btn" id="next">Next →</button>
-    <div class="sep"></div>
-    <button class="btn" id="fit">Fit</button>
-    <button class="btn" id="zin">+</button>
-    <button class="btn" id="zout">−</button>
-    <button class="btn" id="mode">🌙/☀️</button>
+
+```
+<button class="btn" id="prev">← Prev</button>
+<label class="muted">Page</label>
+<input class="num" id="go" type="number" min="1" value="1">
+<span class="muted">/ <span id="total"></span></span>
+<button class="btn" id="next">Next →</button>
+
+<div class="sep"></div>
+
+<button class="btn" id="fit">Fit</button>
+<button class="btn" id="zin">+</button>
+<button class="btn" id="zout">−</button>
+<button class="btn" id="mode">Tita Mode</button>
+```
+
   </div>
+
   <div id="pages" class="wrap" aria-live="polite"></div>
+
+  <div class="chapter-nav">
+    <a href="../">← Back to Overview</a>
+    <a class="next-chapter" href="../chapter-26/">Next Chapter →</a>
+  </div>
+
   <script>
-  (function(){
-    const DIR = "images/";
-    const TOTAL = 11;
+    (function () {
+      const DIR = "images/";
 
-    const pagesEl = document.getElementById("pages");
-    for (let i = 1; i <= TOTAL; i++) {
-      const p = document.createElement("div");
-      p.className = "page";
-      p.dataset.page = i;
+      const FILES = [
+        "CH25.jpg",
+        "CH25_1.jpg",
+        "CH25_2.jpg",
+        "CH25_3.jpg",
+        "CH25_4.jpg",
+        "CH25_5.jpg",
+        "CH25_6.jpg",
+        "CH25_7.jpg",
+        "CH25_8.jpg"
+      ];
 
-      const filename = i === 1 
-        ? "CH25.jpg" 
-        : `CH25_${String(i - 1).padStart(2, "0")}.jpg`;
+      const TOTAL = FILES.length;
 
-      const img = document.createElement("img");
-      img.alt = `Page ${i}`;
-      img.loading = "lazy";
-      img.decoding = "async";
-      img.dataset.src = DIR + filename;
-      img.onerror = () => p.classList.add("hide");
+      const pagesEl = document.getElementById("pages");
+      const go = document.getElementById("go");
+      const totalEl = document.getElementById("total");
 
-      const tag = document.createElement("div");
-      tag.className = "tag";
-      tag.textContent = i;
+      totalEl.textContent = TOTAL;
+      go.max = TOTAL;
 
-      p.appendChild(img);
-      p.appendChild(tag);
-      pagesEl.appendChild(p);
-    }
+      FILES.forEach((filename, index) => {
+        const pageNumber = index + 1;
 
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        const img = e.target.querySelector("img");
-        if (e.isIntersecting && img && !img.src) {
-          img.src = img.dataset.src;
-          io.unobserve(e.target);
+        const page = document.createElement("div");
+        page.className = "page";
+        page.dataset.page = pageNumber;
+
+        const img = document.createElement("img");
+        img.alt = "Page " + pageNumber;
+        img.src = DIR + filename;
+
+        img.onerror = function () {
+          page.innerHTML =
+            '<div class="error-box">' +
+            'Page ' + pageNumber + ' failed to load:<br>' +
+            DIR + filename +
+            '</div>';
+        };
+
+        const tag = document.createElement("div");
+        tag.className = "tag";
+        tag.textContent = pageNumber;
+
+        page.appendChild(img);
+        page.appendChild(tag);
+        pagesEl.appendChild(page);
+      });
+
+      let current = 1;
+      let zoom = 1;
+
+      function clamp(n, min, max) {
+        return Math.max(min, Math.min(max, n));
+      }
+
+      function setZoom(newZoom) {
+        zoom = clamp(newZoom, 0.6, 2.5);
+        document.documentElement.style.setProperty("--zoom", zoom);
+      }
+
+      function scrollToPage(pageNumber) {
+        current = clamp(pageNumber, 1, TOTAL);
+        go.value = current;
+
+        const target = document.querySelector('.page[data-page="' + current + '"]');
+
+        if (target) {
+          window.scrollTo({
+            top: target.offsetTop - 70,
+            behavior: "smooth"
+          });
+        }
+      }
+
+      document.getElementById("prev").onclick = function () {
+        scrollToPage(current - 1);
+      };
+
+      document.getElementById("next").onclick = function () {
+        scrollToPage(current + 1);
+      };
+
+      document.getElementById("zin").onclick = function () {
+        setZoom(zoom + 0.15);
+      };
+
+      document.getElementById("zout").onclick = function () {
+        setZoom(zoom - 0.15);
+      };
+
+      document.getElementById("fit").onclick = function () {
+        setZoom(1);
+      };
+
+      document.getElementById("mode").onclick = function () {
+        document.body.classList.toggle("light");
+      };
+
+      go.onchange = function () {
+        scrollToPage(parseInt(go.value || "1", 10));
+      };
+
+      const spy = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            current = parseInt(entry.target.dataset.page, 10);
+            go.value = current;
+          }
+        });
+      }, {
+        rootMargin: "-40% 0px -55% 0px"
+      });
+
+      document.querySelectorAll(".page").forEach(function (page) {
+        spy.observe(page);
+      });
+
+      window.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowLeft") {
+          scrollToPage(current - 1);
+        }
+
+        if (e.key === "ArrowRight") {
+          scrollToPage(current + 1);
+        }
+
+        if (e.key === "+") {
+          setZoom(zoom + 0.15);
+        }
+
+        if (e.key === "-") {
+          setZoom(zoom - 0.15);
+        }
+
+        if (e.key.toLowerCase() === "f") {
+          document.getElementById("fit").click();
         }
       });
-    }, { rootMargin: "800px 0px" });
 
-    document.querySelectorAll(".page").forEach(p => io.observe(p));
-
-    let current = 1, zoom = 1;
-    const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-    const go = document.getElementById("go");
-
-    function setZoom(z) {
-      zoom = clamp(z, 0.6, 2.5);
-      document.documentElement.style.setProperty("--zoom", zoom);
-    }
-
-    function scrollToPage(n) {
-      current = clamp(n, 1, TOTAL);
-      go.value = current;
-      const el = document.querySelector(`.page[data-page="${current}"]`);
-      if (el) window.scrollTo({ top: el.offsetTop - 70, behavior: "smooth" });
-    }
-
-    document.getElementById("prev").onclick = () => scrollToPage(current - 1);
-    document.getElementById("next").onclick = () => scrollToPage(current + 1);
-    document.getElementById("zin").onclick = () => setZoom(zoom + 0.15);
-    document.getElementById("zout").onclick = () => setZoom(zoom - 0.15);
-    document.getElementById("fit").onclick = () => {
-      const first = document.querySelector(".page img");
-      if (!first || !first.naturalWidth) return setZoom(1);
-      const need = pagesEl.clientWidth / first.naturalWidth;
-      setZoom(need);
-    };
-    document.getElementById("mode").onclick = () =>
-      document.body.classList.toggle("light");
-    go.onchange = () => scrollToPage(parseInt(go.value || "1", 10));
-
-    const spy = new IntersectionObserver(es => {
-      es.forEach(e => {
-        if (e.isIntersecting) {
-          current = parseInt(e.target.dataset.page, 10);
-          go.value = current;
-        }
+      document.addEventListener("contextmenu", function (e) {
+        e.preventDefault();
+        alert("Protected: Right click is disabled, Book Keeper.");
+        return false;
+      }, {
+        capture: true
       });
-    }, { rootMargin: "-40% 0px -55% 0px" });
-    document.querySelectorAll(".page").forEach(p => spy.observe(p));
 
-    window.addEventListener("keydown", e => {
-      if (e.key === "ArrowLeft") scrollToPage(current - 1);
-      if (e.key === "ArrowRight") scrollToPage(current + 1);
-      if (e.key === "+") setZoom(zoom + 0.15);
-      if (e.key === "-") setZoom(zoom - 0.15);
-      if (e.key.toLowerCase() === "f") document.getElementById("fit").click();
-    });
+      document.addEventListener("dragstart", function (e) {
+        if (e.target.tagName === "IMG") {
+          e.preventDefault();
+        }
+      }, {
+        capture: true
+      });
 
-    go.value = 1;
-    setZoom(1);
-  })();
+      document.addEventListener("keydown", function (e) {
+        const key = e.key.toLowerCase();
+
+        if (
+          ((e.ctrlKey || e.metaKey) && ["s", "u", "p"].includes(key)) ||
+          ((e.ctrlKey || e.metaKey) && e.shiftKey && ["i", "j", "c"].includes(key))
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+
+      go.value = 1;
+      setZoom(1);
+    })();
   </script>
-</script>
 
-<!-- ← INSERT MO ITO DITO -->
-<div style="text-align:center; margin-top: 3rem;">
-  <a href="../" style="color: #aaa; text-decoration: none; margin-right: 1rem;">← Back to Overview</a>
-  <a href="../chapter-25/" style="
-    display: inline-block;
-    padding: 0.8rem 1.5rem;
-    background-color: #1a1c22;
-    color: #f2f2f2;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background 0.3s ease;
-  " onmouseover="this.style.background='#2a2d36'" onmouseout="this.style.background='#1a1c22'">
-    Next Chapter →
-  </a>
-
-<script>
-  // 1) Global handler (buong page)
-  document.addEventListener('contextmenu', function (e) {
-    e.preventDefault();
-    alert('🚫 Protected: Right click is disabled, Book Keeper.');
-    return false;
-  }, { capture: true });
-
-  // 2) Block drag (para hindi madala ang image)
-  document.addEventListener('dragstart', function (e) {
-    if (e.target.tagName === 'IMG') e.preventDefault();
-  }, { capture: true });
-
-  // 3) Optional: block common “save/inspect” shortcuts
-  document.addEventListener('keydown', function (e) {
-    const k = e.key.toLowerCase();
-    if (
-      (e.ctrlKey || e.metaKey) && ['s','u','p'].includes(k) ||         // Ctrl/Cmd+S, +U, +P
-      (e.ctrlKey || e.metaKey) && e.shiftKey && ['i','j','c'].includes(k) // DevTools combos
-    ) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, true);
-</script>
-
-<style>
-  /* 4) CSS hardening (no select / callout / drag ghost) */
-  html, body, img, .page {
-    -webkit-user-select: none; user-select: none;
-    -webkit-touch-callout: none;
-  }
-  img { pointer-events: none; } /* prevents right-click on the image node itself */
-</style>
-
-</div>
 </body>
 </html>
